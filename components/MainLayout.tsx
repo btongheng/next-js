@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import NavbarHeading from "./NavbarHeading";
 
 
 interface MainLayoutProps {
@@ -49,6 +50,7 @@ export default async function MainLayout({ children }: MainLayoutProps) {
       <section className="w-full">
         <header className="p-3 fixed z-10 left-60 bg-white border-b right-0">
           <div className="max-w-7xl m-auto flex justify-between items-center">
+            <NavbarHeading />
             <div>
             </div>
             <div className="flex gap-6 justify-center">

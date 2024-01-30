@@ -1,7 +1,7 @@
 "use client"
-import { useEffect, useReducer, useState } from "react"
+import { useCallback, useEffect, useReducer, useState } from "react"
 import Link from "next/link"
-import { TrashIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { TrashIcon, ReloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import {
     Dialog,
     DialogContent,
@@ -13,21 +13,25 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import debounce from "lodash.debounce";
 
 export default function BlogsPage() {
 
     const [loading, setLoading] = useState(false)
 
-    const router = useRouter();
+    // const router = useRouter();
+
     const [response, setResponse] = useReducer((prev: any, next: any) => {
         return { ...prev, ...next }
     }, {
         data: [],
         loading: true,
+        searchTerm: '',
     })
 
-    const fetchBlogs = async () => {
-        const res = await fetch("/api/blogs", {
+    const fetchBlogs = async (value: string = '') => {
+        const res = await fetch(`/api/blogs?term=${value}`, {
             method: 'GET',
         });
         const response = await res.json();
@@ -57,15 +61,24 @@ export default function BlogsPage() {
 
     useEffect(() => {
         fetchBlogs();
-    }, [])
+    }, []);
+
+    const debounceAPI = useCallback(debounce((value: string) => fetchBlogs(value), 500), [])
+
+    const onChangeSearchTerm = (e: HTMLInputElement) => {
+        setResponse({ searchTerm: e.target.value })
+        debounceAPI(e.target.value)
+
+    }
+
 
     return (
         <>
             <div className="flex mb-5">
-                <div>
-                    <h2 className="text-2xl font-bold">Blogs</h2>
+                <div className="relative">
+                    <MagnifyingGlassIcon className="absolute top-2.5 left-2.5" />
+                    <Input type="text" placeholder="Enter blog titile" className="pl-8" onChange={onChangeSearchTerm} />
                 </div>
-                <div></div>
             </div>
 
             {response.loading ? (

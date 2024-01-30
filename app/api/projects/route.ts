@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-
+const tableName = "projects"
 
 export async function GET(request: Request) {
     let response;
@@ -10,13 +10,19 @@ export async function GET(request: Request) {
     const supabase = createClient(cookieStore);
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-
     const term = searchParams.get("term")
+    const page = parseInt(searchParams.get("page") || '0')
+    const limit = parseInt(searchParams.get("limit") || '1')
+
+    const programLimit = limit - 1;
+    const from = page * programLimit;
+    const to = from * programLimit
+
 
     if (id) {
-        response = await supabase.from('blogs').select().eq('id', id).single();
+        response = await supabase.from(tableName).select().eq('id', id).single();
     } else {
-        response = await supabase.from('blogs').select().ilike('title', `%${term}%`).limit(20);
+        response = await supabase.from(tableName).select().ilike('title', `%${term}%`).range(from, to);
     }
     return NextResponse.json(response)
 
@@ -28,7 +34,7 @@ export async function POST(request: Request) {
     const data = await request.json();
 
     const response = await supabase
-        .from('blogs')
+        .from(tableName)
         .insert(data)
         .select()
         .single()
@@ -44,7 +50,7 @@ export async function PATCH(request: Request) {
     const id = searchParams.get("id");
 
     const response = await supabase
-        .from('blogs')
+        .from(tableName)
         .update(data)
         .eq('id', id)
         .select()
@@ -59,7 +65,7 @@ export async function DELETE(request: Request) {
     const data = await request.json();
 
     const response = await supabase
-        .from('blogs')
+        .from(tableName)
         .delete()
         .eq('id', data.id)
     return NextResponse.json(response)
