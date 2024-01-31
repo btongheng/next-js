@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useEffect, useReducer, useState } from "react"
+import { ChangeEvent, useCallback, useEffect, useReducer, useState } from "react"
 import Link from "next/link"
 import { TrashIcon, ReloadIcon, MagnifyingGlassIcon, ChevronRightIcon, ChevronLeftIcon } from "@radix-ui/react-icons";
 import {
@@ -28,15 +28,20 @@ export default function ProjectsPage() {
         loading: true,
         searchTerm: '',
         page: 0
-    })
+    }
+    )
 
     const fetchProjects = async (value: string = '', page: number = 0) => {
-        const apiResponse = await fetch(`/api/projects?term=${value}&page=${page}&limit=2`, {
-            method: 'GET',
-        }).then((res) => res.json())
+        setResponse({ loading: true });
+        const res = await fetch(`/api/projects?term=${value}&page=${page}&limit=20`, {
+            method: "GET",
+        });
+
+        const response = await res.json();
+
 
         setResponse({
-            data: apiResponse.data,
+            data: response.data,
             loading: false,
         })
     }
@@ -65,20 +70,17 @@ export default function ProjectsPage() {
 
     const debounceAPI = useCallback(debounce((value: string) => fetchProjects(value), 500), [])
 
-    const onChangeSearchTerm = (e: HTMLInputElement) => {
-        setResponse({ searchTerm: e.target.value })
-        debounceAPI(e.target.value)
-
-    }
-
     return (
         <>
-            <div className="flex mb-5">
+            <div className="flex mb-5 justify-between">
                 <div className="relative">
                     <MagnifyingGlassIcon className="absolute top-2.5 left-2.5" />
-                    <Input type="text" placeholder="Enter blog titile" className="pl-8" onChange={onChangeSearchTerm} />
+                    <Input type="text" placeholder="Enter blog titile" className="pl-8" onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setResponse({ searchTerm: e.target.value })
+                        debounceAPI(e.target.value)
+                    }} />
                 </div>
-                <div>
+                <div className="flex gap-2">
                     <Button disabled={response.page === 0 ? true : false} variant="outline" size="icon" onClick={() => {
                         const page = response.page - 1;
                         setResponse({ page })

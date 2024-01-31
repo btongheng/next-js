@@ -1,7 +1,7 @@
 "use client"
-import { useCallback, useEffect, useReducer, useState } from "react"
+import { ChangeEvent, useCallback, useEffect, useReducer, useState } from "react"
 import Link from "next/link"
-import { TrashIcon, ReloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { TrashIcon, ReloadIcon, MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import {
     Dialog,
     DialogContent,
@@ -12,7 +12,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import debounce from "lodash.debounce";
 
@@ -20,27 +19,29 @@ export default function BlogsPage() {
 
     const [loading, setLoading] = useState(false)
 
-    // const router = useRouter();
-
     const [response, setResponse] = useReducer((prev: any, next: any) => {
         return { ...prev, ...next }
     }, {
         data: [],
         loading: true,
         searchTerm: '',
+        page: 0
     })
 
-    const fetchBlogs = async (value: string = '') => {
-        const res = await fetch(`/api/blogs?term=${value}`, {
-            method: 'GET',
-        });
-        const response = await res.json();
+    const fetchBlogs = async (value: string = '', page: number = 0) => {
+        setResponse({ loading: true });
+
+        const apiResponse = await fetch(`/api/blogs?term=${value}&page=${page}&limit=20`, {
+            method: "GET",
+        }).then((res) => res.json());
 
         setResponse({
-            data: response.data,
+            data: apiResponse.data,
             loading: false,
-        })
-    }
+        });
+    };
+
+
 
     const deleteBlog = async (id: string) => {
         setLoading(true)
@@ -65,19 +66,31 @@ export default function BlogsPage() {
 
     const debounceAPI = useCallback(debounce((value: string) => fetchBlogs(value), 500), [])
 
-    const onChangeSearchTerm = (e: HTMLInputElement) => {
-        setResponse({ searchTerm: e.target.value })
-        debounceAPI(e.target.value)
-
-    }
-
-
     return (
         <>
-            <div className="flex mb-5">
+            <div className="flex mb-5 justify-between">
                 <div className="relative">
                     <MagnifyingGlassIcon className="absolute top-2.5 left-2.5" />
-                    <Input type="text" placeholder="Enter blog titile" className="pl-8" onChange={onChangeSearchTerm} />
+                    <Input type="text" placeholder="Enter blog titile" className="pl-8" onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setResponse({ searchTerm: e.target.value })
+                        debounceAPI(e.target.value)
+                    }} />
+                </div>
+                <div className="text-right flex gap-2">
+                    <Button disabled={response.page === 0 ? true : false} variant="outline" size="icon" onClick={() => {
+                        const page = response.page - 1;
+                        setResponse({ page })
+                        fetchBlogs(response.term, page)
+                    }}>
+                        <ChevronLeftIcon className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => {
+                        const page = response.page + 1;
+                        setResponse({ page })
+                        fetchBlogs(response.term, page)
+                    }}>
+                        <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
 

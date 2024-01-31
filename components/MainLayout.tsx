@@ -49,7 +49,7 @@ export default async function MainLayout({ children }: MainLayoutProps) {
       <SideNav />
       <section className="w-full">
         <header className="p-3 fixed z-10 left-60 bg-white border-b right-0">
-          <div className="max-w-7xl m-auto flex justify-between items-center">
+          <div className="container m-auto flex justify-between items-center">
             <NavbarHeading />
             <div>
             </div>

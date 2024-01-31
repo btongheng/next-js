@@ -12,18 +12,18 @@ export async function GET(request: Request) {
     const id = searchParams.get("id");
     const term = searchParams.get("term")
     const page = parseInt(searchParams.get("page") || '0')
-    const limit = parseInt(searchParams.get("limit") || '1')
+    const limit = parseInt(searchParams.get("limit") || '10')
 
     const programLimit = limit - 1;
-    const from = page * programLimit;
-    const to = from * programLimit
-
+    const from = page * limit;
+    const to = from + programLimit;
 
     if (id) {
         response = await supabase.from(tableName).select().eq('id', id).single();
     } else {
         response = await supabase.from(tableName).select().ilike('title', `%${term}%`).range(from, to);
     }
+
     return NextResponse.json(response)
 
 }
